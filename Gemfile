@@ -3,7 +3,7 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'appraisal', '2.4.1'
+gem 'appraisal', '2.5.0'
 gem 'rails', '>= 5.0', '< 9.0'
 gem 'rspec'
 gem 'rspec-core'

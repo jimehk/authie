@@ -10,6 +10,7 @@ module Authie
     attr_accessor :extend_session_expiry_on_touch
     attr_accessor :lookup_ip_country_backend
     attr_accessor :serialize_coder
+    attr_accessor :ip_lookup_method
 
     def initialize
       set_defaults
@@ -21,6 +22,14 @@ module Authie
       @lookup_ip_country_backend.call(ip)
     end
 
+    def resolve_ip(request)
+      if @ip_lookup_method.is_a?(Proc)
+        @ip_lookup_method.call(request)
+      else
+        request.public_send(@ip_lookup_method)
+      end
+    end
+
     def set_defaults
       @session_inactivity_timeout = 12.hours
       @persistent_session_length = 2.months
@@ -30,6 +39,7 @@ module Authie
       @extend_session_expiry_on_touch = false
       @lookup_ip_country_backend = nil
       @serialize_coder = ActiveRecord::Coders::YAMLColumn
+      @ip_lookup_method = :ip
     end
   end
 

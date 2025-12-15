@@ -96,10 +96,11 @@ module Authie
     # @return [Authie::Session]
     def touch
       @session.last_activity_at = Time.now
-      if @controller.request.ip != @session.last_activity_ip
-        @session.last_activity_ip_country = Authie.config.lookup_ip_country(@controller.request.ip)
+      remote_ip = Authie.config.resolve_ip(@controller.request)
+      if remote_ip != @session.last_activity_ip
+        @session.last_activity_ip_country = Authie.config.lookup_ip_country(remote_ip)
       end
-      @session.last_activity_ip = @controller.request.ip
+      @session.last_activity_ip = remote_ip
 
       @session.last_activity_path = @controller.request.path
       @session.requests += 1
@@ -127,8 +128,9 @@ module Authie
     # @return [Authie::Session]
     def mark_as_two_factored(skip: nil)
       @session.two_factored_at = Time.now
-      @session.two_factored_ip = @controller.request.ip
-      @session.two_factored_ip_country = Authie.config.lookup_ip_country(@controller.request.ip)
+      remote_ip = Authie.config.resolve_ip(@controller.request)
+      @session.two_factored_ip = remote_ip
+      @session.two_factored_ip_country = Authie.config.lookup_ip_country(remote_ip)
       @session.skip_two_factor = skip unless skip.nil?
       @session.save!
       Authie.notify(:mark_as_two_factor, session: self)
@@ -248,7 +250,7 @@ module Authie
         session.user = user
         session.browser_id = cookies[:browser_id]
         session.login_at = Time.now
-        session.login_ip = controller.request.ip
+        session.login_ip = Authie.config.resolve_ip(controller.request)
         session.login_ip_country = Authie.config.lookup_ip_country(session.login_ip)
         session.host = controller.request.host
         session.user_agent = controller.request.user_agent

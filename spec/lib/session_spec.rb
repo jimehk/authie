@@ -137,20 +137,20 @@ RSpec.describe Authie::Session do
     end
 
     it 'sets the last activity IP' do
-      allow(controller.request).to receive(:ip).and_return('1.2.3.4')
+      allow(Authie.config).to receive(:resolve_ip).and_return('1.2.3.4')
       session.touch
       expect(session.last_activity_ip).to eq '1.2.3.4'
     end
 
     it 'sets the last activity IP country' do
-      allow(controller.request).to receive(:ip).and_return('1.2.3.4')
+      allow(Authie.config).to receive(:resolve_ip).and_return('1.2.3.4')
       allow(Authie.config).to receive(:lookup_ip_country).with('1.2.3.4').and_return('FR')
       session.touch
       expect(session.last_activity_ip_country).to eq 'FR'
     end
 
     it 'does not lookup an IP if the last activity IP does not change' do
-      allow(controller.request).to receive(:ip).and_return('1.2.3.4')
+      allow(Authie.config).to receive(:resolve_ip).and_return('1.2.3.4')
       session.update!(last_activity_ip: '1.2.3.4', last_activity_ip_country: 'FR')
       expect(Authie.config).to_not receive(:lookup_ip_country)
       session.touch
@@ -260,13 +260,13 @@ RSpec.describe Authie::Session do
     end
 
     it 'sets the ip address' do
-      allow(controller.request).to receive(:ip).and_return('1.2.3.4')
+      allow(Authie.config).to receive(:resolve_ip).and_return('1.2.3.4')
       session.mark_as_two_factored
       expect(session.two_factored_ip).to eq '1.2.3.4'
     end
 
     it 'sets the ip address country' do
-      allow(controller.request).to receive(:ip).and_return('1.2.3.4')
+      allow(Authie.config).to receive(:resolve_ip).and_return('1.2.3.4')
       allow(Authie.config).to receive(:lookup_ip_country).with('1.2.3.4').and_return('AU')
       session.mark_as_two_factored
       expect(session.two_factored_ip_country).to eq 'AU'
@@ -329,7 +329,7 @@ RSpec.describe Authie::Session do
   describe '.start' do
     it 'creates a new session with details from the request' do
       time = Time.new(2022, 3, 4, 2, 31, 22)
-      allow(controller.request).to receive(:ip).and_return('1.2.3.4')
+      allow(Authie.config).to receive(:resolve_ip).and_return('1.2.3.4')
       Timecop.freeze(time) do
         session = described_class.start(controller, user: user)
         expect(session).to be_a Authie::Session
@@ -343,8 +343,8 @@ RSpec.describe Authie::Session do
     end
 
     it 'adds the login IP coutnry' do
+      allow(Authie.config).to receive(:resolve_ip).and_return('1.2.3.4')
       allow(Authie.config).to receive(:lookup_ip_country).with('1.2.3.4').and_return('GB')
-      allow(controller.request).to receive(:ip).and_return('1.2.3.4')
       session = described_class.start(controller, user: user)
       expect(session).to be_a Authie::Session
       expect(session.session.login_ip_country).to eq 'GB'
